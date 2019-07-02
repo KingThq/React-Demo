@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Document</title>
+    <script src="lib/react.development.js"></script>
+    <script src="lib/react-dom.development.js"></script>
+    <script src="lib/babel.min.js"></script>
+    <script src="lib/axios.min.js"></script>
+</head>
+<body>
+    <div id="myApp">
+        
+    </div>
+</body>
+<script type="text/babel">
+    //增加了默认选择项
+    class My extends React.Component {
+        constructor() {
+            super();
+            this.state = {
+                one:[],
+                oneStr: "13",
+                cities: [],
+                cityStr: "1301",
+                suburbs: [],
+                suburbStr: "130102"
+            };
+        }
+
+        componentDidMount() {
+            axios.get("./data/data.json").then(({data}) => {
+                let one = data.data;
+                let cities = one.find(v => v.label === this.state.oneStr).children;
+                let suburbs = cities.find(v => v.label === this.state.cityStr).children;
+                this.setState({
+                    one,
+                    cities,
+                    suburbs
+                })
+            })
+        }
+
+        changeOne(e) {
+            let province = this.state.one.find(v => v.label === e.target.value);
+            if(province) {
+                this.setState({
+                    cities: province.children,
+                    suburbs: [],
+                    oneStr: e.target.value
+                });
+            }
+            
+        }
+
+        changeCities(e) {
+            // console.log(e.target.value);
+            let suburb = this.state.cities.find(v => v.label === e.target.value);
+            if(suburb) {
+                this.setState({
+                    suburbs: suburb.children,
+                    cityStr: e.target.value
+                });  
+            }
+        }
+
+        changeSuburbs(e) {
+            this.setState({
+                suburbStr: e.target.value === "0" ? e.target.children[1].value : e.target.value
+            });
+        }
+
+        render() {
+            return (
+                <div>
+                    <select value={this.state.oneStr} onChange={this.changeOne.bind(this)}>
+                        <option value="0">请选择</option>   
+                        {
+                            this.state.one.map((v, i) => {
+                                return (
+                                    <option key={v.label} 
+                                        value={v.label}>{v.value}</option>
+                                )
+                            })
+                        } 
+                    </select>
+                    
+                    <select value={this.state.cityStr} onChange={this.changeCities.bind(this)}>
+                        <option value="0">请选择</option>   
+                        {
+                            this.state.cities.map((v, i) => {
+                                return (
+                                    <option key={v.label} 
+                                        value={v.label}>{v.value}</option>
+                                )
+                            })
+                        } 
+                    </select>
+
+                    <select value={this.state.suburbStr} onChange={this.changeSuburbs.bind(this)}>
+                        <option value="0">请选择</option>   
+                        {
+                            this.state.suburbs.map((v, i) => {
+                                return (
+                                    <option key={v.label} 
+                                        value={v.label}>{v.value}</option>
+                                )
+                            })
+                        } 
+                    </select>
+                </div>
+            )
+        }
+    }
+
+    ReactDOM.render(<My/>, document.querySelector("#myApp"));
+</script>
+</html>
