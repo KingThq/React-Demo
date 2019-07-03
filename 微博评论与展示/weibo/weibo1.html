@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Document</title>
+    <link href="style/weibo.css" rel="stylesheet" type="text/css" />
+    <script src="lib/react.development.js"></script>
+    <script src="lib/react-dom.development.js"></script>
+    <script src="lib/babel.min.js"></script>
+    <script src="lib/axios.min.js"></script>
+</head>
+<body>
+    <div id="myApp">
+
+    </div>
+</body>
+<script type="text/babel">
+    //工具类,定义静态方法
+    class Tools {
+        static date(v) {
+            var time = new Date(v);
+            var timeStr = time.getFullYear()+"-"+
+                (time.getMonth()+1).toString().padStart(2,"0")+"-"+
+                time.getDate().toString().padStart(2,"0")+ " "+
+                time.getHours().toString().padStart(2,"0")+":"+
+                time.getMinutes().toString().padStart(2,"0")+":"+
+                time.getSeconds().toString().padStart(2,"0");
+            return timeStr;
+        }
+    }
+
+    class Config {};
+    Config.baseUrl = "http://127.0.0.1"
+
+    //TakeComment 组件
+    class TakeComment extends React.Component {
+        constructor(props) {
+            super(props);
+            
+            this.state = {
+                constext: ''
+            }
+        }
+
+        addWeibo() {
+            axios.post(Config.baseUrl+"/weibo", {
+                context: this.state.context.value
+            }).then(({data}) => {
+                this.setState({
+                    context: ""
+                }, () => {
+                    this.props.getWeibo()
+                })
+            })
+        }
+        
+        render() {
+            return (
+                <div className="takeComment">
+                    <textarea name="textarea" 
+                        ref={v => this.state.context = v} 
+                        className="takeTextField" 
+                        id="tijiaoText"></textarea>
+                    <div className="takeSbmComment">
+                        <input type="button" 
+                            onClick={this.addWeibo.bind(this)}
+                            className="inputs" value=""/>
+                    </div>
+                </div>
+            )
+        }
+    }
+    
+    //CommentOn 组件
+    function CommentOn(props) {
+
+        function _upWeibo(id, type) {
+            axios.put(Config.baseUrl+"/weibo", {
+                id,
+                type
+            }).then(({data}) => {
+                props.getWeibo(props.pageIndex);
+            })
+        }
+
+        return (
+            <div className="commentOn">
+                <div className="noContent" style={{display:props.contextList.length<1?"block":"none"}}>暂无留言</div>
+                <div className="messList">
+                    {
+                        props.contextList.map((v, i) => {
+                            return (
+                                <div className="reply" key={i}>
+                                    <p className="replyContent">{v.context}</p>
+                                    <p className="operation">
+                                        <span className="replyTime">{Tools.date(v.addTime)}</span>
+                                        <span className="handle">
+                                            <a href="javascript:;" 
+                                                onClick={() => {
+                                                    _upWeibo(v._id, 1);
+                                                }}
+                                                className="top">
+                                                {v.topNum}
+                                            </a>
+                                            <a href="javascript:;" 
+                                                onClick={() => {
+                                                    _upWeibo(v._id, 2);
+                                                }}
+                                                className="down_icon">
+                                                {v.downNum}
+                                            </a>
+                                            <a href="javascript:;" 
+                                                onClick={() => {
+                                                    axios.delete(Config.baseUrl+"/weibo", {
+                                                        data: {
+                                                            id: v._id
+                                                        }
+                                                    }).then(({data}) => {
+                                                        if(data.ok === 1) 
+                                                            props.getWeibo(props.pageIndex);
+                                                    })
+                                                }}
+                                                className="cut">
+                                                删除
+                                            </a>
+                                        </span>
+                                    </p>
+                                </div>
+                            )
+                        })
+                    }
+                </div>
+                
+                <PageList 
+                    pageIndex={props.pageIndex}
+                    getWeibo={props.getWeibo}
+                    pageSum={props.pageSum}>
+                </PageList>
+            </div>
+        )
+    }
+
+    //分页组件
+    function PageList(props) {
+        const pageArr = [];
+        for(let i = 1; i <= props.pageSum; i ++) {
+            pageArr.push(<a href="javascript:;" key={i} onClick={() => {
+                props.getWeibo(i);
+            }} className={props.pageIndex===i?"active":""}>{i}</a>)
+        }
+
+        return (
+            <div className="page">
+                {pageArr}
+            </div>
+        )
+    }
+
+    //主组件
+    class JyArea extends React.Component {
+        constructor(props) {
+            super(props);
+            
+            this.state = {
+                contextList: [],
+                pageIndex: 1,
+                pageSum: 1
+            }
+        }
+
+        getWeibo(pageI=1) {
+            axios.get(Config.baseUrl+"/weibo",{
+                params: {
+                    pageIndex: pageI
+                }
+            }).then(({data}) => {
+                // console.log(data);
+                this.setState({
+                    contextList: data.contextList,
+                    pageIndex: data.pageIndex,
+                    pageSum: data.pageSum
+                });
+            })
+        }
+        
+        render() {
+            return (
+                <div className="jyArea">
+                    <TakeComment getWeibo={this.getWeibo.bind(this)}></TakeComment>
+                    <CommentOn 
+                        contextList={this.state.contextList} 
+                        pageIndex={this.state.pageIndex}
+                        pageSum={this.state.pageSum}
+                        getWeibo={this.getWeibo.bind(this)}>
+                    </CommentOn>
+                </div>
+            )
+        }
+
+        componentDidMount() {
+            this.getWeibo();
+        }
+    }
+    
+    ReactDOM.render(<JyArea/>, document.querySelector("#myApp"));
+</script>
+</html>
