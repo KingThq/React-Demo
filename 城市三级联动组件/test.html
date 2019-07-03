@@ -49,7 +49,8 @@
                 this.setState({
                     cities: province.children,
                     suburbs: [],
-                    oneStr: e.target.value
+                    oneStr: e.target.value,
+                    cityStr: 0
                 });
             }
             
@@ -57,11 +58,12 @@
 
         changeCities(e) {
             // console.log(e.target.value);
-            let suburb = this.state.cities.find(v => v.label === e.target.value);
-            if(suburb) {
+            let city = this.state.cities.find(v => v.label === e.target.value);
+            if(city) {
                 this.setState({
-                    suburbs: suburb.children,
-                    cityStr: e.target.value
+                    suburbs: city.children,
+                    cityStr: e.target.value,
+                    suburbStr: 0
                 });  
             }
         }
