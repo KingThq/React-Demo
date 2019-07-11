@@ -1,0 +1,50 @@
+小技巧：
+传递属性：
+    1、直接传
+   // ReactDOM.render(<App userName={"abc"} age={12} />, document.getElementById('root'));
+    2、直接使用...
+   // 语法糖
+   // ReactDOM.render(<App {...{userName:"abcdefg",age:34,sex:"男"}} />, document.getElementById('root'));
+   3、属性合并
+   // ReactDOM.render(<App {...{
+   //     ...{
+   //         userName:"xixi",
+   //         age:45
+   //     },
+   //     ...{
+   //         sex:"女"
+   //     }
+   // }} />, document.getElementById('root'));
+   4、属性从变量当中获取
+   // const baseInfo = {
+   //     userName:"xixi",
+   //     age:45
+   // }
+   // const sexInfo = {
+   //     sex:"女"
+   // }
+   // ReactDOM.render(<App {...{
+   //     ...baseInfo,
+   //     ...sexInfo
+   // }} />, document.getElementById('root'));
+   5、将变量合并以后再使用...
+   const baseInfo = {
+       userName:"xixi",
+       age:45
+   }
+   const sexInfo = {
+       sex:"女"
+   }
+   Object.assign(baseInfo,sexInfo)
+   ReactDOM.render(<App {...baseInfo} />, document.getElementById('root'));
+1、高阶组件
+    首先，高阶组件是一个函数。该函数负责接收一个组件，返回一个新的组件。
+    1、属性代理
+
+    2、反向继承（渲染劫持）
+
+2、路由拦截（守卫）
+    1、app.js
+    2、增加router->index.js
+    3、增加一个组件 guardRouter.js
+  动态增加路由：
